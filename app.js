@@ -1,3 +1,5 @@
+const fs = require('fs');
+const generatePage = require('./src/page-template.js');
 const inquirer = require('inquirer');
 const promptUser = () => {
   return inquirer.prompt([
@@ -46,11 +48,11 @@ const promptProject = portfolioData => {
 if (!portfolioData.projects) {
   portfolioData.projects = [];
 }
-//   console.log(`
-// =================
-// Add a New Project
-// =================
-// `);
+  console.log(`
+=================
+Add a New Project
+=================
+`);
   return inquirer.prompt([
     {
       type: 'input',
@@ -101,13 +103,28 @@ if (!portfolioData.projects) {
       message: 'Would you like to enter another project?',
       default: false
     } 
-  ]);
+  ])
+  .then(projectData => {
+    portfolioData.projects.push(projectData);
+    if (projectData.confirmAddProject) {
+      return promptProject(portfolioData);
+    } else {
+      return portfolioData;
+    }
+  });
 };
 
 promptUser()
   .then(promptProject)
   .then(portfolioData => {
     console.log(portfolioData);
+    const pageHTML = generatePage(portfolioData);
+
+    fs.writeFile('./index.html', pageHTML, err => {
+      if (err) throw new Error(err);
+
+      console.log('Page created! Check out index.html in this directory to see it!');
+    });
   });
   
 // const profileDataArgs = process.argv.slice(2, process.argv.length);
@@ -123,8 +140,7 @@ promptUser()
 // };
 
 // printProfileData(profileDataArgs);
-// const fs = require('fs');
-// const generatePage = require('./src/page-template.js');
+
 // const profileDataArgs = process.argv.slice(2, process.argv.length);
 // const [name, github] = profileDataArgs;
 
